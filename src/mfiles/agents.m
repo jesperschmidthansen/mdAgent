@@ -5,6 +5,7 @@ classdef agents < handle
 		r, v, F; # position, vel., force
 		types; # types init to 'p'
 		life_times; # life times	
+		field; # Agent field
 	endproperties
 
 	methods
@@ -19,6 +20,12 @@ classdef agents < handle
 			this.types = char(zeros(max_nagents, 1)); this.types(1) = 'p';
 
 			setnthreads(nthreads);
+		end
+
+		function agentfield(this, ngrid, lbox);
+
+			this.field = field(ngrid, lbox);
+
 		end
 
 		function pforce(this, cf, A)
@@ -110,13 +117,12 @@ classdef agents < handle
 
 		end
 
-		function f = field(this, type, ngrid, lbox)
+		function getfield(this, type)
 			idx = find( this.types==type );
 			r = this.r(idx,:);   
-			f = atofield(r, ngrid, lbox);
+			this.field.value = atofield(r, this.field.ngrids, this.field.lbox);
 		end
 
-		
 		function plot(this, types, colors, lim=10, slice=false, ssize=5)
 				
 			if length(colors)!=length(types)

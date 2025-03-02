@@ -14,9 +14,9 @@ crit_lifetime = 30; convert_prob0 = 1e-3;
 
 dt = 5e-3; ekin0 = 0.05; nthreads = 8;
 
-# Fields 
+# Field 
 ngrid = 40; lbox = 20; L0 = 1;
-Db = 0.02; k0 = 0.001;
+Db = 0.01; k0 = 0.005;
 
 ################################################################
 
@@ -27,8 +27,9 @@ a.v(1,:) = [0,0,0];
 spawn_prob = spawn_prob0;
 convert_prob = convert_prob0;
 
-b = L0.*ones(ngrid, ngrid, ngrid);
-h = lbox/ngrid;
+a.agentfield(ngrid, lbox);
+rho_nutrient = field(ngrid, lbox, L0);
+
 slice_id = int64(ngrid/2);
 
 m = 1; n=1; 
@@ -39,18 +40,18 @@ while a.nagents<max_nagents
 	ekin = a.integrate('p', dt, ekin0); 
 
 	# Fields
-	p_field = a.field('p', ngrid, lbox);	
-	rhs = -k0*p_field.*b + Db*laplace(b, h); 
-	b = b + dt*rhs;
+	a.getfield('p');	
+	rhs = -k0*a.field.value.*rho_nutrient.value + Db*rho_nutrient.laplace(); 
+	rho_nutrient.value = rho_nutrient.value + dt*rhs;
 
 	# Spawn 
-	agent_field = fieldtoa(a.r(1:a.nagents, :), b, lbox); 
-	spawn_prob = spawn_prob0*agent_field; 
+	avalues = rho_nutrient.posvalues(a);
+	spawn_prob = spawn_prob0*avalues; 
 	a.spawn(spawn_prob);
 
 	# Convert
-	agent_field = fieldtoa(a.r(1:a.nagents, :), b, lbox); 
-	convert_prob = convert_prob0*(1-agent_field); 
+	avalues = rho_nutrient.posvalues(a);
+	convert_prob = convert_prob0*(1-avalues); 
 	a.convert("p->n", crit_lifetime, convert_prob);
 
 	# Visualization
@@ -64,7 +65,7 @@ while a.nagents<max_nagents
 		subplot(2,2,1); a.plot("pn", "br", 10, false, 3); 	
 		subplot(2,2,3); a.plot("pn", "br", 10, true, 3); 
 		subplot(2,2,2);	semilogy(t, np, '-o', t, nn+1, '-o'); 
-		subplot(2,2,4); surf(b(:,:,slice_id));	axis([0 ngrid, 0, ngrid, 0, 1.1]);	
+		subplot(2,2,4); surf(rho_nutrient.value(:,:,slice_id));	axis([0 ngrid, 0, ngrid, 0, 1.1]);	
 		pause(0.001);
 
 		m++;
