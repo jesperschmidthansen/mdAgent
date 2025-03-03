@@ -163,18 +163,26 @@ classdef agents < handle
 			pause(0.001);
 		end
 
-		function save(this, filename, write_opt="w")
+		function save(this, filename, write_opt="w", max_agents=1e5)
 	
 			format = filename(end-2:end);
 			if strcmp(format, "xyz")
 				fptr = fopen(filename, write_opt);
 			
-				fprintf(fptr, "%d\n", this.nagents);  
-				fprintf(fptr, "Preamble\n");	
+				if this.nagents > max_agents 
+					warning("Increasing variable max_agents- VMD will not support this when appending file");
+					max_agents = this.nagents;
+				end
+	
+				fprintf(fptr, "%d\n", max_agents);  
+				fprintf(fptr, "Written by mdAgent\n");	
 				for n=1:this.nagents
 					fprintf(fptr, "%c %f %f %f \n", this.types(n), this.r(n,1), this.r(n,2), this.r(n,3));
 				end 	
-	
+				for n=this.nagents+1:max_agents
+					fprintf(fptr, "D 0.0 0.0 0.0\n");
+				end	
+
 				fclose(fptr);
 			elseif strcmp(format, "mat")		
 				r = this.r; v = this.v; types = this.types; 
