@@ -12,7 +12,7 @@ max_nagents = 1e5; cfa = 3.0; A = 2.0;
 spawn_prob0 = 1e-3; 
 crit_lifetime = 30; convert_prob0 = 1e-3;
 
-dt = 5e-3; ekin0 = 0.05; nthreads = 8;
+dt = 5e-3; ekin0 = 0.1; nthreads = 8;
 
 # Field 
 ngrid = 40; lbox = 20; L0 = 1;
@@ -33,7 +33,7 @@ rho_nutrient = field(ngrid, lbox, L0);
 slice_id = int64(ngrid/2);
 
 m = 1; n=1; 
-while a.nagents<max_nagents
+while n<=1e4
 
 	# Agents 
 	a.pforce(cfa, A);
@@ -47,8 +47,8 @@ while a.nagents<max_nagents
 	# Spawn 
 	avalues = rho_nutrient.posvalues(a);
 	spawn_prob = spawn_prob0*avalues; 
-	a.spawn(spawn_prob);
-
+	a.spawn('p', spawn_prob);
+	
 	# Convert
 	avalues = rho_nutrient.posvalues(a);
 	convert_prob = convert_prob0*(1-avalues); 

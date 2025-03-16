@@ -60,38 +60,44 @@ classdef agents < handle
 			this.life_times(1:this.nagents) += dt;
 		end
 
-		function spawn(this, critr)
+		function spawn(this, type, crit_prob)
+		
+			if length(crit_prob)==1
+				crit_prob = ones(1, this.nagents)*crit_prob;
+			end
+
+			if rows(crit_prob) != 1			
+				crit_prob = crit_prob.';
+			end
+
+			idx_type = find( this.types==type );
+			ntype = length(idx_type);
+
+			random = rand(1, ntype);
+
+			idx_spawn = find( random<crit_prob(idx_type) );
+			nspawn = length(idx_spawn);
+			new_vels = 0.1*(rand(nspawn,3) - 0.5);
 			
-			if length(critr)==1
-				critr = ones(1, this.nagents)*critr;
-			end
-		
-			idx = find( this.types=='p' ); 
-			np = length(idx);
-			random = rand(np, 1);
-		
-			for n=1:np 
-				i =  idx(n);	
-				if random(n) < critr(i) 
-					na = this.nagents + 1;
-					if na > this.max_nagents 
-						error("Agent limit exceeded\n");
-					end
-
-					rnew = this.r(i,:);
-					this.r(na, :) = rnew;
-					
-					vnew = rand(1,3) - 0.5; 
-					this.v(na,:) = vnew;
-					for k=1:3
-						this.v(1:na,k) = this.v(1:na,k) - sum(this.v(1:na,k))./na;
-					end	
-
-					this.types(na) = 'p';
-					this.nagents = na;
+			for n=1:nspawn 
+				nagents = this.nagents + 1;
+				if nagents > this.max_nagents 
+					error("Agent limit exceeded\n");
 				end
+
+				nidx = idx_spawn(n);
+				this.r(nagents,:) = this.r(nidx, :);
+				this.v(nagents,:) = new_vels(n, :); 
+				this.types(nagents) = type;
+				this.nagents = nagents;
 			end
 
+			if nspawn>0
+				for k=1:3
+					this.v(1:nagents,k) = this.v(1:nagents,k) - sum(this.v(1:nagents,k))./nagents;
+				end	
+			end
+		
 		end
 
 
