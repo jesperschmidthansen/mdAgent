@@ -1,7 +1,7 @@
 clear all
 
-addpath("../src/mfiles");
-addpath("../src/cppfiles");
+addpath("../src");
+addpath("../inst");
 
 system("make -C ../src/cppfiles/");
 
